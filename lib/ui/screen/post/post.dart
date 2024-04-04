@@ -1,7 +1,13 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:instagram_clone/ui/screen/home/home_screen.dart';
+import 'package:instagram_clone/ui/screen/home_navigator/home_navigator.dart';
 
 class PostScreen extends StatefulWidget {
   const PostScreen({
@@ -14,18 +20,76 @@ class PostScreen extends StatefulWidget {
 
 class _PostScreenState extends State<PostScreen> {
   final TextEditingController _textEditController = TextEditingController();
-  File? file;
+  XFile? file;
 
-  Future<void> selectImage() async {
-    final pick = await ImagePicker().pickImage(source: ImageSource.camera);
-
-    setState(() {
-      if (pick != null) {
-        file = File(pick.path);
-      }
-    });
+//upload post with some data
+  Future<void> uploadPost(
+    String userId,
+    String userName,
+    File imageFile,
+    String content,
+  ) async {
+    try {
+      String imageUrl = await _uploadImage(imageFile);
+      await FirebaseFirestore.instance.collection("posts").add({
+        'userId': userId,
+        'userName': userName,
+        'imageUrl': imageUrl,
+        'content': content,
+        'postDate': DateTime.now(),
+        'likesCount': 0,
+        'commentsCount': 0,
+      });
+    } catch (error) {
+      throw Exception(error);
+    }
   }
 
+//UploadImage in Firebase
+  Future<String> _uploadImage(File imageFile) async {
+    try {
+      firebase_storage.Reference ref = firebase_storage.FirebaseStorage.instance
+          .ref()
+          .child("postImages")
+          .child('image_${DateTime.now().millisecondsSinceEpoch}.jpg');
+      await ref.putFile(imageFile);
+      String getImageUrl = await ref.getDownloadURL();
+      return getImageUrl;
+    } catch (e) {
+      print('Error uploading image: $e');
+      throw Exception(e);
+    }
+  }
+
+  // Pick image from camera
+  Future<void> _pickImageFromCamera() async {
+    final picker = ImagePicker();
+    try {
+      final XFile? pickImage =
+          await picker.pickImage(source: ImageSource.camera);
+      setState(() {
+        file = pickImage;
+      });
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  // Pick image from gallery
+  Future<void> _pickImageFromGallery() async {
+    final picker = ImagePicker();
+    try {
+      final XFile? pickImage =
+          await picker.pickImage(source: ImageSource.gallery);
+      setState(() {
+        file = pickImage;
+      });
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  final int userId = DateTime.now().millisecondsSinceEpoch;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,7 +98,7 @@ class _PostScreenState extends State<PostScreen> {
           padding: const EdgeInsets.only(top: 40, left: 15, right: 15),
           child: Column(
             children: [
-              //row for user profile image and user name
+              // Row for user profile image and user name
               Row(
                 children: [
                   const CircleAvatar(
@@ -48,8 +112,16 @@ class _PostScreenState extends State<PostScreen> {
                   const Text("UserName"),
                   const Spacer(),
                   GestureDetector(
-                    onTap: () {
-                      print("yes");
+                    onTap: () async {
+                      // if (_textEditController.text.isNotEmpty && file != null) {
+                      //   await uploadPost(userId.toString(), "Seshadri",
+                      //       File(file!.path), _textEditController.text);
+                      //   // Reset UI after posting
+                      //   _textEditController.clear();
+                      //   setState(() {
+                      //     file = null;
+                      //   });
+                      // }
                     },
                     child: const Text(
                       "Post",
@@ -58,42 +130,59 @@ class _PostScreenState extends State<PostScreen> {
                   )
                 ],
               ),
-              //row for description
+              // Row for description
               Row(
                 children: [
                   Expanded(
                     child: TextField(
-                        controller: _textEditController,
-                        maxLines: null,
-                        decoration: const InputDecoration(
-                          hintText: "Write your description",
-                          border: InputBorder.none,
-                        )),
+                      controller: _textEditController,
+                      maxLines: null,
+                      decoration: const InputDecoration(
+                        hintText: "Write your description",
+                        border: InputBorder.none,
+                      ),
+                    ),
                   )
                 ],
               ),
-              Container(
-                child: Image.network(
-                  "https://1.bp.blogspot.com/-jDiadpEcRDw/WmyIav9vpnI/AAAAAAAA1Ww/qeF9kEbDELEKREp6w7HbjvEwY-DrpNr0ACLcBGAs/s1600/Telugu%2BActress%2BSai%2BPallavi%2BOily%2BFace%2BCloseup%2BSmiling%2BStills%2B%25288%2529.jpg",
-                  fit: BoxFit.fill,
-                ),
+              // Display picked image or a placeholder image
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: file != null
+                    ? Image.file(
+                        File(file!.path),
+                        width: 300,
+                        height: 300,
+                        fit: BoxFit.cover,
+                      )
+                    : null,
               ),
               const SizedBox(
                 height: 20,
               ),
-              //row for select image form gallery or camera
-              const Row(
+              // Row for selecting image from gallery or camera
+              Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Spacer(),
+                  const Spacer(),
                   SizedBox(
-                    child: Icon(Icons.camera_alt),
+                    child: InkWell(
+                      onTap: () {
+                        _pickImageFromCamera();
+                      },
+                      child: const Icon(Icons.camera_alt),
+                    ),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     width: 20,
                   ),
                   SizedBox(
-                    child: Icon(Icons.photo),
+                    child: InkWell(
+                      onTap: () {
+                        _pickImageFromGallery();
+                      },
+                      child: const Icon(Icons.photo),
+                    ),
                   ),
                 ],
               )

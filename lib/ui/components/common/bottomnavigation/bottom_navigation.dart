@@ -37,7 +37,7 @@ class CommonBottomNavigation extends StatelessWidget {
               label: ""),
           BottomNavigationBarItem(
               icon: Icon(
-                Icons.flip_camera_ios_outlined,
+                Icons.favorite_border,
                 color: Colors.white,
               ),
               label: ""),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:instagram_clone/ui/screen/chat/chat_screen.dart';
 
 class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
   const CommonAppBar({
@@ -13,23 +14,33 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
         backgroundColor: const Color.fromRGBO(0, 0, 0, 1),
         leading: null,
-        title: const Row(
+        title: Row(
           children: [
-            Text(
+            const Text(
               "Instagram",
               style: TextStyle(color: Colors.white),
             ),
-            Spacer(),
-            Icon(
+            const Spacer(),
+            const Icon(
               Icons.favorite_border_rounded,
               color: Colors.white,
             ),
-            SizedBox(
+            const SizedBox(
               width: 20,
             ),
-            Icon(
-              Icons.notifications,
-              color: Colors.white,
+            InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ChatScreen(),
+                  ),
+                );
+              },
+              child: const Icon(
+                Icons.chat,
+                color: Colors.white,
+              ),
             )
           ],
         ));

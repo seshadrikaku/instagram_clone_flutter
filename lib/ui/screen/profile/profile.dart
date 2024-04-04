@@ -76,7 +76,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ],
             ),
-            //Edit profile.
+            const SizedBox(
+              height: 20,
+            ),
             Container(
               alignment: Alignment.center,
               width: double.infinity,

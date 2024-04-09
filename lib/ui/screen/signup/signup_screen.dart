@@ -1,7 +1,12 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
-import 'package:instagram_clone/services/firebase_setup.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:instagram_clone/services/firebase_auth_setup.dart';
 import 'package:instagram_clone/ui/components/common/text_field_widget.dart';
+import 'package:instagram_clone/ui/components/common/utils.dart';
 import 'package:instagram_clone/ui/screen/login/login_screen.dart';
+import 'package:instagram_clone/utils/pick_image.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({
@@ -17,6 +22,7 @@ class _SignUpScreentState extends State<SignUpScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _userNameContaoller = TextEditingController();
   final TextEditingController _mobileNumberController = TextEditingController();
+  Uint8List? profileImage;
 
   @override
   void dispose() {
@@ -25,6 +31,35 @@ class _SignUpScreentState extends State<SignUpScreen> {
     _userNameContaoller;
     _mobileNumberController;
     super.dispose();
+  }
+
+  selectImage() async {
+    Uint8List image = await SelectImage().pickImage(ImageSource.gallery);
+    setState(() {
+      profileImage = image;
+    });
+  }
+
+  //handle signup
+  void handleSignUp() async {
+    final response = AuthSetUp().signUpUserDetails(
+        emailId: _emailController.text,
+        password: _passwordController.text,
+        userName: _userNameContaoller.text,
+        mobileNumber: _mobileNumberController.text,
+        bio: "Junior Flutter Dev",
+        imageFile: profileImage!);
+    // ignore: unrelated_type_equality_checks
+
+    if (response == "success") {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => const LoginScreen(),
+        ),
+      );
+    } else {
+      showSnackBar("Sorry unable to signIn", context);
+    }
   }
 
   @override
@@ -38,12 +73,30 @@ class _SignUpScreentState extends State<SignUpScreen> {
               flex: 2,
               child: Container(),
             ),
-            const CircleAvatar(
-              backgroundImage: NetworkImage(
-                  "https://i.zoomtventertainment.com/33345220_793593627517145_3626209380132716544_n_1585625940__rend_9_16.jpg?tr=w-600"),
-              radius: 30,
+            Stack(
+              children: [
+                profileImage != null
+                    ? CircleAvatar(
+                        radius: 64,
+                        backgroundImage: MemoryImage(profileImage!),
+                        backgroundColor: Colors.red,
+                      )
+                    : const CircleAvatar(
+                        radius: 64,
+                        backgroundImage:
+                            NetworkImage('https://i.stack.imgur.com/l60Hf.png'),
+                        backgroundColor: Colors.red,
+                      ),
+                Positioned(
+                  bottom: -10,
+                  left: 80,
+                  child: IconButton(
+                    onPressed: selectImage,
+                    icon: const Icon(Icons.add_a_photo),
+                  ),
+                )
+              ],
             ),
-
             //some space
             Flexible(
               flex: 2,
@@ -71,7 +124,6 @@ class _SignUpScreentState extends State<SignUpScreen> {
               hintText: 'Mobile number',
               keybordTupe: TextInputType.text,
               textEditingController: _mobileNumberController,
-              ischeckPassword: true,
             ),
             //some space
             const SizedBox(
@@ -80,23 +132,13 @@ class _SignUpScreentState extends State<SignUpScreen> {
 
             //register button
             InkWell(
-              onTap: () {
-                AuthSetUp().signUpUserDetails(
-                    emailId: _emailController.text,
-                    password: _passwordController.text,
-                    userName: _userNameContaoller.text,
-                    mobileNumber: _mobileNumberController.text,
-                    bio: "Junior Flutter Dev");
-
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const LoginScreen()));
-              },
+              onTap: handleSignUp,
               child: Container(
+                padding: const EdgeInsets.all(8),
                 alignment: Alignment.center,
                 width: double.infinity,
                 decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
                   color: Colors.blue[300],
                 ),
                 child: const Text(

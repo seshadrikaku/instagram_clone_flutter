@@ -1,13 +1,11 @@
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:instagram_clone/ui/screen/home/home_screen.dart';
-import 'package:instagram_clone/ui/screen/home_navigator/home_navigator.dart';
+
+// import 'package:multi_image_picker/multi_image_picker.dart';
 
 class PostScreen extends StatefulWidget {
   const PostScreen({
@@ -20,30 +18,30 @@ class PostScreen extends StatefulWidget {
 
 class _PostScreenState extends State<PostScreen> {
   final TextEditingController _textEditController = TextEditingController();
-  XFile? file;
+  List<XFile> file = [];
 
-//upload post with some data
-  Future<void> uploadPost(
-    String userId,
-    String userName,
-    File imageFile,
-    String content,
-  ) async {
-    try {
-      String imageUrl = await _uploadImage(imageFile);
-      await FirebaseFirestore.instance.collection("posts").add({
-        'userId': userId,
-        'userName': userName,
-        'imageUrl': imageUrl,
-        'content': content,
-        'postDate': DateTime.now(),
-        'likesCount': 0,
-        'commentsCount': 0,
-      });
-    } catch (error) {
-      throw Exception(error);
-    }
-  }
+// //upload post with some data
+//   Future<void> uploadPost(
+//     String userId,
+//     String userName,
+//     File imageFile,
+//     String content,
+//   ) async {
+//     try {
+//       String imageUrl = await _uploadImage(imageFile);
+//       await FirebaseFirestore.instance.collection("posts").add({
+//         'userId': userId,
+//         'userName': userName,
+//         'imageUrl': imageUrl,
+//         'content': content,
+//         'postDate': DateTime.now(),
+//         'likesCount': 0,
+//         'commentsCount': 0,
+//       });
+//     } catch (error) {
+//       throw Exception(error);
+//     }
+//   }
 
 //UploadImage in Firebase
   Future<String> _uploadImage(File imageFile) async {
@@ -62,28 +60,30 @@ class _PostScreenState extends State<PostScreen> {
   }
 
   // Pick image from camera
-  Future<void> _pickImageFromCamera() async {
-    final picker = ImagePicker();
-    try {
-      final XFile? pickImage =
-          await picker.pickImage(source: ImageSource.camera);
-      setState(() {
-        file = pickImage;
-      });
-    } catch (e) {
-      print(e);
-    }
-  }
+  // Future<void> _pickImageFromCamera() async {
+  //   final picker = ImagePicker();
+  //   try {
+  //     final XFile? pickImage =
+  //         await picker.pickImage(source: ImageSource.camera);
+  //     setState(() {
+  //       file = pickImage;
+  //     });
+  //   } catch (e) {
+  //     print(e);
+  //   }
+  // }
 
   // Pick image from gallery
   Future<void> _pickImageFromGallery() async {
     final picker = ImagePicker();
     try {
-      final XFile? pickImage =
+      final XFile? pickImages =
           await picker.pickImage(source: ImageSource.gallery);
-      setState(() {
-        file = pickImage;
-      });
+      if (pickImages != null) {
+        setState(() {
+          file.add(pickImages);
+        });
+      }
     } catch (e) {
       print(e);
     }
@@ -112,17 +112,7 @@ class _PostScreenState extends State<PostScreen> {
                   const Text("UserName"),
                   const Spacer(),
                   GestureDetector(
-                    onTap: () async {
-                      // if (_textEditController.text.isNotEmpty && file != null) {
-                      //   await uploadPost(userId.toString(), "Seshadri",
-                      //       File(file!.path), _textEditController.text);
-                      //   // Reset UI after posting
-                      //   _textEditController.clear();
-                      //   setState(() {
-                      //     file = null;
-                      //   });
-                      // }
-                    },
+                    onTap: () async {},
                     child: const Text(
                       "Post",
                       style: TextStyle(color: Colors.blue),
@@ -145,18 +135,55 @@ class _PostScreenState extends State<PostScreen> {
                   )
                 ],
               ),
-              // Display picked image or a placeholder image
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: file != null
-                    ? Image.file(
-                        File(file!.path),
-                        width: 300,
-                        height: 300,
-                        fit: BoxFit.cover,
-                      )
-                    : null,
+              //cancel button
+              if (file != null)
+                Row(
+                  children: [
+                    const Spacer(),
+                    InkWell(
+                      onTap: () {
+                        // setState(() {
+                        //   file = null;
+                        // });
+                      },
+                      child: const Icon(Icons.cancel),
+                    ),
+                    const SizedBox(
+                      width: 10,
+                    ),
+                    //
+                  ],
+                ),
+              const SizedBox(
+                height: 10,
               ),
+              // Display picked image or a placeholder image
+
+              Container(
+                height: 100, // Specify a fixed height for the container
+                child: file.isNotEmpty
+                    ? ListView.builder(
+                        scrollDirection: Axis
+                            .horizontal, // Adjust the scroll direction if needed
+                        itemCount: file.length,
+                        itemBuilder: (context, index) {
+                          return Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.file(
+                                File(file[index].path),
+                                width: 200, // Specify the width of the image
+                                height: 200, // Specify the height of the image
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          );
+                        },
+                      )
+                    : const Text("No Image Selected"),
+              ),
+
               const SizedBox(
                 height: 20,
               ),
@@ -168,7 +195,7 @@ class _PostScreenState extends State<PostScreen> {
                   SizedBox(
                     child: InkWell(
                       onTap: () {
-                        _pickImageFromCamera();
+                        // _pickImageFromCamera();
                       },
                       child: const Icon(Icons.camera_alt),
                     ),
@@ -193,3 +220,17 @@ class _PostScreenState extends State<PostScreen> {
     );
   }
 }
+
+
+
+
+
+  // if (_textEditController.text.isNotEmpty && file != null) {
+                      //   await uploadPost(userId.toString(), "Seshadri",
+                      //       File(file!.path), _textEditController.text);
+                      //   // Reset UI after posting
+                      //   _textEditController.clear();
+                      //   setState(() {
+                      //     file = null;
+                      //   });
+                      // }

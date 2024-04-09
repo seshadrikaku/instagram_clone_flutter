@@ -2,7 +2,6 @@ import 'dart:io';
 
 class PostResponseModel {
   final String userId;
-
   final String userName;
   final File imageUrl;
   final String content;

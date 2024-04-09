@@ -1,4 +1,9 @@
+import 'dart:ffi';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:instagram_clone/utils/pick_image.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({
@@ -10,6 +15,15 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  Uint8List? profileImage;
+//pickImage from gallery
+  selectImageFromGallery() async {
+    Uint8List image = await SelectImage().pickImage(ImageSource.gallery);
+    setState(() {
+      profileImage = image;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -19,16 +33,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           children: [
             //user image and posts and followers details
-            const Row(
+            Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                CircleAvatar(
-                  radius: 40,
-                  backgroundImage: NetworkImage(
-                    "https://1.bp.blogspot.com/-jDiadpEcRDw/WmyIav9vpnI/AAAAAAAA1Ww/qeF9kEbDELEKREp6w7HbjvEwY-DrpNr0ACLcBGAs/s1600/Telugu%2BActress%2BSai%2BPallavi%2BOily%2BFace%2BCloseup%2BSmiling%2BStills%2B%25288%2529.jpg",
-                  ),
+                Stack(
+                  children: [
+                    (profileImage != null)
+                        ? CircleAvatar(
+                            radius: 40,
+                            backgroundImage: MemoryImage(profileImage!),
+                          )
+                        : const CircleAvatar(
+                            radius: 40,
+                            backgroundImage: NetworkImage(
+                              "https://1.bp.blogspot.com/-jDiadpEcRDw/WmyIav9vpnI/AAAAAAAA1Ww/qeF9kEbDELEKREp6w7HbjvEwY-DrpNr0ACLcBGAs/s1600/Telugu%2BActress%2BSai%2BPallavi%2BOily%2BFace%2BCloseup%2BSmiling%2BStills%2B%25288%2529.jpg",
+                            ),
+                          ),
+                    Positioned(
+                      bottom: -5,
+                      right: -5,
+                      child: InkWell(
+                        onTap: selectImageFromGallery,
+                        child: const Icon(Icons.add),
+                      ),
+                    ),
+                  ],
                 ),
-                Column(
+                const Column(
                   children: [
                     Row(
                       children: [Text("5")],
@@ -38,7 +69,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     )
                   ],
                 ),
-                Column(
+                const Column(
                   children: [
                     Row(
                       children: [Text("533k")],
@@ -48,7 +79,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     )
                   ],
                 ),
-                Column(
+                const Column(
                   children: [
                     Row(
                       children: [Text("1674")],

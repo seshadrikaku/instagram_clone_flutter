@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+
 import 'package:instagram_clone/services/firebase_auth_setup.dart';
 import 'package:instagram_clone/ui/components/common/text_field_widget.dart';
 import 'package:instagram_clone/ui/components/common/utils.dart';
 import 'package:instagram_clone/ui/screen/home_navigator/home_navigator.dart';
+import 'package:instagram_clone/ui/screen/signup/signup_screen.dart';
+import 'package:instagram_clone/ui/storage/secure_storage.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({
@@ -14,6 +18,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreentState extends State<LoginScreen> {
+  final SecureStorageData _storageData = SecureStorageData();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool isLoggedIn = false;
@@ -32,11 +37,16 @@ class _LoginScreentState extends State<LoginScreen> {
     });
     String response = await AuthSetUp().login(
         emailId: _emailController.text, password: _passwordController.text);
-    if (response == 'sucess') {
+    _storageData.save('Existing_Email_Id', _emailController.text);
+    if (response == 'success') {
+      Map<String, dynamic>? userDetails =
+          await AuthSetUp().getUserDetails(_emailController.text);
+      _storageData.save("userDetails", userDetails);
+
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
-          builder: (context) => const HomeNavigatorScreen(),
+          builder: (context) => HomeNavigatorScreen(),
         ),
         (route) => false,
       );
@@ -115,13 +125,23 @@ class _LoginScreentState extends State<LoginScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  child: const Text("You don't Have an Account.?"),
+                const SizedBox(
+                  child: Text("You don't Have an Account.?"),
                 ),
-                Container(
-                  child: const Text(
-                    "Sign up.",
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                SizedBox(
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SignUpScreen(),
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      "Sign up.",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
               ],

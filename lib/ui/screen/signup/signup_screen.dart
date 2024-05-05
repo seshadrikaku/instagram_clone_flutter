@@ -41,8 +41,8 @@ class _SignUpScreentState extends State<SignUpScreen> {
   }
 
   //handle signup
-  void handleSignUp() async {
-    final response = AuthSetUp().signUpUserDetails(
+  void handleSignUp(context) async {
+    final response = await AuthSetUp().signUpUserDetails(
         emailId: _emailController.text,
         password: _passwordController.text,
         userName: _userNameContaoller.text,
@@ -132,7 +132,9 @@ class _SignUpScreentState extends State<SignUpScreen> {
 
             //register button
             InkWell(
-              onTap: handleSignUp,
+              onTap: () {
+                handleSignUp(context);
+              },
               child: Container(
                 padding: const EdgeInsets.all(8),
                 alignment: Alignment.center,
@@ -155,16 +157,21 @@ class _SignUpScreentState extends State<SignUpScreen> {
               child: Container(),
             ),
             //navigation
-            const Row(
+            Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(
+                const SizedBox(
                   child: Text("All ready you have an Account.?"),
                 ),
                 SizedBox(
-                  child: Text(
-                    "Login",
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Text(
+                      "Login",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
               ],

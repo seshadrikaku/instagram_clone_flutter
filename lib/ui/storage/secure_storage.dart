@@ -12,6 +12,10 @@ class SecureStorageData {
     return result;
   }
 
+  void clear(String key) {
+    storage.delete(key: key);
+  }
+
   void deleteAll() {
     storage.deleteAll();
   }

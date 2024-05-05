@@ -1,8 +1,9 @@
-import 'dart:ffi';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:instagram_clone/ui/screen/login/login_screen.dart';
+import 'package:instagram_clone/ui/storage/secure_storage.dart';
 import 'package:instagram_clone/utils/pick_image.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -15,6 +16,8 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  final SecureStorageData _storageData = SecureStorageData();
+
   Uint8List? profileImage;
 //pickImage from gallery
   selectImageFromGallery() async {
@@ -120,7 +123,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               child: GestureDetector(
                   onTap: () {}, child: const Text("Edit profile")),
-            )
+            ),
+
+            const SizedBox(
+              height: 200,
+            ),
+            TextButton(
+                onPressed: () {
+                  _storageData.clear("Existing_Email_Id");
+                  Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LoginScreen(),
+                      ),
+                      (route) => false);
+                },
+                child: const Text('Logout'))
           ],
         ),
       ),

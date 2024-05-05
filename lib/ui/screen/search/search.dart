@@ -10,6 +10,7 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
+  final TextEditingController _searchController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,34 +27,14 @@ class _SearchScreenState extends State<SearchScreen> {
 
   //Widget for search textfield
   Widget _buildSearchTextField() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 45, left: 10, right: 10),
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: const BoxDecoration(
-          color: Color.fromRGBO(53, 48, 48, 0.996),
-          borderRadius: BorderRadius.all(
-            Radius.circular(5),
-          ),
-        ),
-        child: const Row(
-          children: [
-            SizedBox(
-              width: 10,
-            ),
-            Icon(
-              Icons.search,
-              size: 18,
-            ),
-            SizedBox(
-              width: 10,
-            ),
-            Text(
-              "Search",
-              style: TextStyle(fontWeight: FontWeight.w200, color: Colors.grey),
-            )
-          ],
-        ),
+    return Container(
+      child: TextField(
+        controller: _searchController,
+        decoration: InputDecoration(
+            label: Text(
+          "search",
+          style: TextStyle(color: Colors.white),
+        )),
       ),
     );
   }
@@ -62,16 +43,22 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget _buildSearchVideos() {
     return GridView.count(
       shrinkWrap: true, // Allows the grid to adapt to its children's size
-      crossAxisCount: 3, // Two images per row
+      crossAxisCount: 2, // Two images per row
       children: List.generate(37, (index) {
-        return Container(
-          margin: const EdgeInsets.all(2),
-          decoration:
-              BoxDecoration(border: Border.all(color: Colors.grey, width: 0.4)),
-          child: Image.network(
-            "https://images.indianexpress.com/2019/06/sai-pallavi-1.jpg?w=759&h=948&imflag=true",
-            fit: BoxFit.fill,
-          ),
+        return Column(
+          children: [
+            Text("Hello Sand $index"),
+            Container(
+              margin: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey, width: 0.4)),
+              child: Image.network(
+                "https://images.indianexpress.com/2019/06/sai-pallavi-1.jpg?w=759&h=948&imflag=true",
+                fit: BoxFit.fill,
+                scale: 7,
+              ),
+            ),
+          ],
         );
       }),
     );

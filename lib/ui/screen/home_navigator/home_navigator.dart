@@ -26,12 +26,17 @@ class _HomeNavigatorScreenState extends State<HomeNavigatorScreen> {
     });
   }
 
+  @override
+  void initState() {
+    super.initState();
+  }
+
   final List screens = [
     const HomeScreen(),
     const SearchScreen(),
     const PostScreen(),
     const ReelStoreScreen(),
-    const ProfileScreen(),
+    ProfileScreen(),
   ];
 
   @override

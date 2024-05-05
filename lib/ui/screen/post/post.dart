@@ -1,9 +1,12 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+// import 'package:instagram_clone/ui/screen/home/home_screen.dart';
+import 'package:instagram_clone/ui/screen/home_navigator/home_navigator.dart';
 
 // import 'package:multi_image_picker/multi_image_picker.dart';
 
@@ -21,27 +24,34 @@ class _PostScreenState extends State<PostScreen> {
   List<XFile> file = [];
 
 // //upload post with some data
-//   Future<void> uploadPost(
-//     String userId,
-//     String userName,
-//     File imageFile,
-//     String content,
-//   ) async {
-//     try {
-//       String imageUrl = await _uploadImage(imageFile);
-//       await FirebaseFirestore.instance.collection("posts").add({
-//         'userId': userId,
-//         'userName': userName,
-//         'imageUrl': imageUrl,
-//         'content': content,
-//         'postDate': DateTime.now(),
-//         'likesCount': 0,
-//         'commentsCount': 0,
-//       });
-//     } catch (error) {
-//       throw Exception(error);
-//     }
-//   }
+  Future<void> uploadPost(
+    String userId,
+    String userName,
+    List<XFile> images,
+    String content,
+  ) async {
+    try {
+      for (final imageFile in images) {
+        String imageUrl = await _uploadImage(File(imageFile.path));
+        await FirebaseFirestore.instance.collection("posts").add({
+          'userId': userId,
+          'userName': userName,
+          'imageUrl': imageUrl,
+          'content': content,
+          'postDate': DateTime.now(), // You can get the current date here
+          'likesCount': 0,
+          'commentsCount': 0,
+        });
+        Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+                builder: (context) => const HomeNavigatorScreen()),
+            (route) => false);
+      }
+    } catch (error) {
+      throw Exception(error);
+    }
+  }
 
 //UploadImage in Firebase
   Future<String> _uploadImage(File imageFile) async {
@@ -59,19 +69,34 @@ class _PostScreenState extends State<PostScreen> {
     }
   }
 
+  Future<String> _uploadImageProfile(File imageFile) async {
+    try {
+      firebase_storage.Reference ref = firebase_storage.FirebaseStorage.instance
+          .ref()
+          .child("profileImges")
+          .child('image_${DateTime.now().millisecondsSinceEpoch}.jpg');
+      await ref.putFile(imageFile);
+      String getImageUrl = await ref.getDownloadURL();
+      return getImageUrl;
+    } catch (e) {
+      print('Error uploading image: $e');
+      throw Exception(e);
+    }
+  }
+
   // Pick image from camera
-  // Future<void> _pickImageFromCamera() async {
-  //   final picker = ImagePicker();
-  //   try {
-  //     final XFile? pickImage =
-  //         await picker.pickImage(source: ImageSource.camera);
-  //     setState(() {
-  //       file = pickImage;
-  //     });
-  //   } catch (e) {
-  //     print(e);
-  //   }
-  // }
+  Future<void> _pickImageFromCamera() async {
+    final picker = ImagePicker();
+    try {
+      final XFile? pickImage =
+          await picker.pickImage(source: ImageSource.camera);
+      setState(() {
+        // file = pickImage;
+      });
+    } catch (e) {
+      print(e);
+    }
+  }
 
   // Pick image from gallery
   Future<void> _pickImageFromGallery() async {
@@ -112,12 +137,21 @@ class _PostScreenState extends State<PostScreen> {
                   const Text("UserName"),
                   const Spacer(),
                   GestureDetector(
-                    onTap: () async {},
+                    onTap: () async {
+                      if (file.isNotEmpty) {
+                        uploadPost(
+                          userId.toString(),
+                          "seshadri",
+                          file,
+                          _textEditController.text,
+                        );
+                      }
+                    },
                     child: const Text(
                       "Post",
                       style: TextStyle(color: Colors.blue),
                     ),
-                  )
+                  ),
                 ],
               ),
               // Row for description
@@ -220,17 +254,3 @@ class _PostScreenState extends State<PostScreen> {
     );
   }
 }
-
-
-
-
-
-  // if (_textEditController.text.isNotEmpty && file != null) {
-                      //   await uploadPost(userId.toString(), "Seshadri",
-                      //       File(file!.path), _textEditController.text);
-                      //   // Reset UI after posting
-                      //   _textEditController.clear();
-                      //   setState(() {
-                      //     file = null;
-                      //   });
-                      // }

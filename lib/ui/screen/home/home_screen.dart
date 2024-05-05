@@ -1,104 +1,102 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:instagram_clone/providers/firebase_provider.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({
-    Key? key,
-  }) : super(key: key);
+class HomeScreen extends ConsumerWidget {
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final postDetails = ref.watch(postsStreamProvider);
     return Scaffold(
-      body: Container(
-        margin: const EdgeInsets.all(10),
-        child: Column(
-          children: [
-            _buildUserStatusVideos(),
-            Expanded(
-              child: ListView.builder(
-                itemCount: 30,
-                itemBuilder: (context, index) {
-                  return Column(
-                    children: [
-                      const SizedBox(height: 10),
-                      const Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 17,
-                            backgroundColor: Colors.white,
-                            backgroundImage: NetworkImage(
-                              "https://images.indianexpress.com/2019/06/sai-pallavi-1.jpg?w=759&h=948&imflag=true",
-                            ),
-                          ),
-                          SizedBox(width: 10),
-                          Text("Seshadri"),
-                          Spacer(),
-                          Icon(Icons.more_vert),
-                        ],
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        child: Image.network(
-                          "https://images.indianexpress.com/2019/06/sai-pallavi-1.jpg?w=759&h=948&imflag=true",
-                          height: MediaQuery.of(context).size.height / 2,
-                          width: MediaQuery.of(context).size.width,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          IconButton(
-                            onPressed: () {},
-                            icon: const Icon(Icons.favorite_border_rounded),
-                          ),
-                          const SizedBox(width: 10),
-                          IconButton(
-                            onPressed: () {},
-                            icon: const Icon(Icons.comment_rounded),
-                          ),
-                          IconButton(
-                            onPressed: () {},
-                            icon: const Icon(Icons.send),
-                          ),
-                          const Spacer(),
-                          IconButton(
-                            onPressed: () {},
-                            icon: const Icon(Icons.bookmark_border),
-                          ),
-                        ],
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+      body: postDetails.when(
+        data: (data) {
+          return ListView.builder(
+            itemCount: data.docs.length,
+            itemBuilder: (context, index) {
+              final doc = data.docs[index];
+              return _buildPostWidget(context, doc);
+            },
+          );
+        },
+        error: (error, stackTrace) {
+          return Center(
+            child: Text(error.toString()),
+          );
+        },
+        loading: () {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        },
       ),
     );
   }
 
-  // Widget for user status videos
-  Widget _buildUserStatusVideos() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: List.generate(20, (index) {
-          return const Padding(
-            padding: EdgeInsets.all(8.0),
-            child: CircleAvatar(
-              radius: 30,
-              backgroundImage: NetworkImage(
-                "https://images.indianexpress.com/2019/06/sai-pallavi-1.jpg?w=759&h=948&imflag=true",
-              ),
+  Widget _buildPostWidget(BuildContext context, DocumentSnapshot post) {
+    final data = post.data() as Map<String, dynamic>;
+    return Column(
+      children: [
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            data['imageUrl'] != null
+                ? CircleAvatar(
+                    radius: 17,
+                    backgroundColor: Colors.white,
+                    backgroundImage: NetworkImage(data['imageUrl']),
+                  )
+                : Container(),
+            const SizedBox(width: 10),
+            Text(data['userName']),
+            const Spacer(),
+            const Icon(Icons.more_vert),
+          ],
+        ),
+        GestureDetector(
+          // Add your gesture detection logic here
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Image.network(
+              data['imageUrl'],
+              height: MediaQuery.of(context).size.height / 2,
+              width: MediaQuery.of(context).size.width,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container();
+              },
             ),
-          );
-        }),
-      ),
+          ),
+        ),
+        Row(
+          children: [
+            IconButton(
+              // Add your like button logic here
+              onPressed: () {},
+              icon: Icon(Icons.favorite_border_rounded),
+            ),
+            Text(data['likesCount'].toString()),
+            const SizedBox(width: 10),
+            IconButton(
+              // Add your comment button logic here
+              onPressed: () {},
+              icon: const Icon(Icons.comment_rounded),
+            ),
+            IconButton(
+              // Add your share button logic here
+              onPressed: () {},
+              icon: const Icon(Icons.send),
+            ),
+            const Spacer(),
+            IconButton(
+              // Add your bookmark button logic here
+              onPressed: () {},
+              icon: const Icon(Icons.bookmark_border),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

@@ -2,9 +2,9 @@ import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:instagram_clone/constants/storage_text.dart';
+// import 'package:instagram_clone/constants/storage_text.dart';
 import 'package:instagram_clone/services/firebase_storage.dart';
-import 'package:instagram_clone/ui/storage/secure_storage.dart';
+// import 'package:instagram_clone/ui/storage/secure_storage.dart';
 
 class AuthSetUp {
 //for register
@@ -12,7 +12,7 @@ class AuthSetUp {
   //for storing
   final FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
 
-  final _secureStorage = SecureStorageData();
+  // final _secureStorage = SecureStorageData();
 
 //sign up method
   Future<String> signUpUserDetails(
@@ -40,7 +40,7 @@ class AuthSetUp {
 
         //Store user related data in firebase database
         await firebaseFirestore
-            .collection("instagramCloneUserDetails")
+            .collection("instagramUserDetails")
             .doc(userDetails.user!.uid)
             .set({
           "userName": userName,
@@ -68,13 +68,31 @@ class AuthSetUp {
         await auth.signInWithEmailAndPassword(
             email: emailId, password: password);
         // await _secureStorage.save(userData, emailId);
-        response = 'sucess';
+        response = 'success';
       } else {
-        response = 'please enter emailid and password';
+        response = 'please enter emailId and password';
       }
     } catch (e) {
       return response = e.toString();
     }
     return response;
+  }
+
+  //getuser details
+  Future<Map<String, dynamic>?> getUserDetails(String emailId) async {
+    try {
+      QuerySnapshot<Map<String, dynamic>> querySnapshot =
+          await firebaseFirestore
+              .collection('instagramCloneUserDetails')
+              .where("email", isEqualTo: emailId)
+              .get();
+      if (querySnapshot.docs.isNotEmpty) {
+        return querySnapshot.docs.first.data() as Map<String, dynamic>?;
+      } else {
+        return {};
+      }
+    } catch (e) {
+      throw Exception(e);
+    }
   }
 }
